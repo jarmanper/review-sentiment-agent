@@ -2,12 +2,39 @@
 
 import pickle
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import csv
 import datetime
+import os
 
 # Initialize the app
 app = FastAPI()
+
+# Configure CORS to allow requests from your React portfolio
+# For production, set FRONTEND_URL environment variable with your Vercel URL
+allowed_origins = [
+    "http://localhost:3000",  # Local development (Create React App)
+    "http://localhost:5173",  # Vite default port
+    "http://localhost:5174",  # Vite alternative port
+]
+
+# Get production URL from environment variable if set
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
+# In development, allow all origins for easier testing
+# In production, use specific origins for security
+is_production = os.getenv("ENVIRONMENT") == "production"
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins if is_production else ["*"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
 
 # Defines the data structure we expect from users
 class TextInput(BaseModel):

@@ -1,19 +1,18 @@
-# 3.9-slim is a lightweight Python base image
+# Lightweight Python base image
 FROM python:3.10-slim
 
-# TODO: 1. Set the working directory inside the container to /app
-# Hint: The command is WORKDIR /app
+# Set the working directory inside the container to /app
 WORKDIR /app
 
-# Copy our code into the container
+# Copy the code into the container
 COPY . /app
 
-# Install dependencies (We need fastapi, uvicorn, scikit-learn)
+# Install dependencies
 RUN pip install fastapi uvicorn scikit-learn==1.7.1
 
 
-# Exposes the port the app runs on (FastAPI defaults to 8000, so we expose 8000)
+# Expose the port the app runs on
 EXPOSE 8000
 
-# Command to run the app when the container starts
+# Run the app
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]

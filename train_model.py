@@ -1,6 +1,5 @@
 # Trains the AI
 
-# train_model.py
 import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
