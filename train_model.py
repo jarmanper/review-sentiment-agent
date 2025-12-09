@@ -1,54 +1,239 @@
-# Trains the AI
+# Train the Sentiment Analysis Model
+# Run this script to create or update the model: python train_model.py
+# The trained model gets saved as sentiment_model.pkl
 
-# train_model.py
 import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import make_pipeline
 
+# Training data - we have 100 positive and 100 negative examples
+# The more varied the examples, the better the model gets at understanding sentiment
 
-
-# Dummy training data
-training_texts = [
-    "I love this product", 
-    "This is the worst experience ever",
-    "Absolute garbage",
+positive_texts = [
+    "I love this product",
+    "This is great",
+    "This is good",
     "Fantastic and helpful",
     "This product exceeded my expectations",
-    "I would not reccommend this to anyone",
-    "Worst Product Ever.",
-    "Best Product Ever!",
-    "I am pleased with my purchase!!!",
-    "This product was defective."
-
+    "Best product ever",
+    "I am pleased with my purchase",
+    "Amazing quality",
+    "Wonderful experience",
+    "Highly recommend",
+    "Excellent service",
+    "Very satisfied",
+    "Love it",
+    "Perfect",
+    "Outstanding",
+    "Great value",
+    "Happy customer",
+    "Works perfectly",
+    "Awesome product",
+    "Five stars",
+    "Best purchase ever",
+    "Absolutely love this",
+    "Really good quality",
+    "Super happy with this",
+    "Exceeded expectations",
+    "Very impressed",
+    "Top notch quality",
+    "Brilliant product",
+    "So good",
+    "Very good",
+    "Really great",
+    "Superb",
+    "Phenomenal",
+    "Incredible value",
+    "Best in class",
+    "A must buy",
+    "Worth every penny",
+    "Exceptional quality",
+    "Flawless",
+    "Just what I needed",
+    "Better than expected",
+    "Pleasantly surprised",
+    "Amazing experience",
+    "Would buy again",
+    "Definitely recommend",
+    "So impressed",
+    "Very happy",
+    "Extremely satisfied",
+    "Couldn't be happier",
+    "Love love love",
+    "This is amazing",
+    "Such a great product",
+    "Really pleased",
+    "Fantastic quality",
+    "Wonderful product",
+    "Made my day",
+    "Best decision ever",
+    "Totally worth it",
+    "Impressed with quality",
+    "Great customer service",
+    "Fast shipping",
+    "Exactly as described",
+    "Premium quality",
+    "Best one I've tried",
+    "So satisfied",
+    "Absolutely fantastic",
+    "Really impressed",
+    "Works like a charm",
+    "Highly satisfied",
+    "Would recommend to anyone",
+    "Top quality",
+    "Excellent product",
+    "Very well made",
+    "Impressive",
+    "Great experience",
+    "Loving it so far",
+    "Best thing I bought",
+    "Extremely happy",
+    "Such good quality",
+    "Awesome experience",
+    "Perfect fit",
+    "Just perfect",
+    "Exactly what I wanted",
+    "Beautiful product",
+    "High quality",
+    "Great purchase",
+    "Very pleased",
+    "Absolutely perfect",
+    "Wonderful quality",
+    "So happy with this",
+    "The best",
+    "Truly amazing",
+    "Remarkable",
+    "Stellar product",
+    "First class",
+    "Grade A quality",
+    "Couldn't ask for more",
+    "Beyond expectations",
+    "Simply the best",
+    "A plus product"
 ]
 
-# Labels for above data
-# 1 = Positive, 0 = Negative.
-training_labels = [
-    1, 
-    0,
-    0,
-    1,
-    1,
-    0,
-    0,
-    1,
-    1,
-    0
+negative_texts = [
+    "This is the worst experience ever",
+    "Absolute garbage",
+    "I would not recommend this to anyone",
+    "Worst product ever",
+    "This product was defective",
+    "Terrible quality",
+    "Very disappointed",
+    "Waste of money",
+    "Horrible experience",
+    "Do not buy",
+    "Awful",
+    "Hate it",
+    "Broken on arrival",
+    "Completely useless",
+    "Poor quality",
+    "Total disaster",
+    "Never again",
+    "Worst purchase ever",
+    "Terrible service",
+    "Very bad",
+    "This is bad",
+    "Not good",
+    "I hate this",
+    "Disappointed",
+    "Frustrating",
+    "Complete waste",
+    "Extremely disappointed",
+    "Not worth it",
+    "Regret buying this",
+    "Total junk",
+    "Cheaply made",
+    "Falls apart easily",
+    "Stopped working",
+    "Does not work",
+    "Scam product",
+    "Misleading description",
+    "Nothing like advertised",
+    "Poor customer service",
+    "Worst ever",
+    "Stay away",
+    "Save your money",
+    "Big mistake",
+    "Hugely disappointed",
+    "Not as expected",
+    "Below expectations",
+    "Pathetic quality",
+    "Utter rubbish",
+    "Waste of time",
+    "Horrible product",
+    "Very unhappy",
+    "Extremely frustrated",
+    "Would not recommend",
+    "Avoid at all costs",
+    "Terrible purchase",
+    "Bad quality",
+    "Really bad",
+    "So disappointed",
+    "Not satisfied",
+    "Unsatisfied",
+    "Poor experience",
+    "Dreadful",
+    "Subpar quality",
+    "Inferior product",
+    "Not impressed",
+    "Failed expectations",
+    "Complete letdown",
+    "Major disappointment",
+    "Worst decision",
+    "Throwing it away",
+    "Asking for refund",
+    "Want my money back",
+    "Horrible quality",
+    "Cheapest quality",
+    "Broke immediately",
+    "Does not function",
+    "Malfunctioning",
+    "Defective product",
+    "Damaged goods",
+    "Unusable",
+    "Useless product",
+    "Total failure",
+    "Epic fail",
+    "Never buying again",
+    "Lost my trust",
+    "Very upset",
+    "Extremely unhappy",
+    "Furious",
+    "Angry customer",
+    "Feel cheated",
+    "Rip off",
+    "Overpriced junk",
+    "Not functional",
+    "Poorly designed",
+    "Bad experience",
+    "Negative experience",
+    "One star",
+    "Zero stars",
+    "The worst",
+    "Absolutely terrible",
+    "Unacceptable"
 ]
 
-# This creates a machine learning pipeline (Vectorize text -> Classify)
+# Combine all the training data together
+training_texts = positive_texts + negative_texts
+
+# Create the labels: 1 means positive, 0 means negative
+# We use the list lengths to make sure we have the right number of each
+training_labels = [1] * len(positive_texts) + [0] * len(negative_texts)
+
+print(f"Training with {len(positive_texts)} positive and {len(negative_texts)} negative examples...")
+
+# Create the model pipeline
+# CountVectorizer turns text into numbers, MultinomialNB does the classification
 model = make_pipeline(CountVectorizer(), MultinomialNB())
 
-# Training the model
-print("Currently Training the model, hold tight!")
+# Train the model on our data
 model.fit(training_texts, training_labels)
 
-# Saves the model to a file named 'sentiment_model.pkl'
-# Uses pickle.dump to write binary to the file. Pickle takes the python objecy and converts its internal
-# structure to a sequence of bytes - serialization.
-with open ('sentiment_model.pkl', 'wb') as f:
+# Save the trained model to a file so the API can use it
+with open("sentiment_model.pkl", "wb") as f:
     pickle.dump(model, f)
 
-print("Model saved as sentiment_model.pkl")
+print("Done! Model saved as sentiment_model.pkl")

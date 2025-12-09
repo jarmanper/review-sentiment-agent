@@ -1,55 +1,65 @@
-# The web server/REST API for the AI model
+# Sentiment Analysis API
+# This is the main backend that serves our machine learning model
+# It receives text from the frontend and returns whether it's positive or negative
 
 import pickle
+import os
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import csv
-import datetime
 
-# Initialize the app
-app = FastAPI()
+# Fire up the FastAPI app
+app = FastAPI(
+    title="Sentiment Analysis API",
+    description="Analyzes text to determine if it's positive or negative",
+    version="1.0.0"
+)
 
-# Defines the data structure we expect from users
+# Set up CORS so our frontend can talk to this API
+# We need to allow requests from wherever our frontend is hosted
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, you might want to restrict this
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+# This defines what data we expect when someone sends us text to analyze
 class TextInput(BaseModel):
     text: str
 
-# Helper function to log predictions to a CSV file
-def log_prediction(text, prediction):
-    with open("model_logs.csv", "a", newline="") as file:
-        writer = csv.writer(file)
-        # Log the Current Time, The Input Text, and The Result
-        writer.writerow([datetime.datetime.now(), text, prediction])
-
-# Load the model from Phase 1.
-with open ('sentiment_model.pkl', 'rb') as f:
+# Load the trained model when the server starts
+# This model was created by running train_model.py
+with open("sentiment_model.pkl", "rb") as f:
     model = pickle.load(f)
 
 @app.get("/")
 def home():
+    """Health check endpoint - just returns a message to confirm the API is running"""
     return {"message": "Sentiment Analysis API is running!"}
 
 @app.post("/predict")
 def predict_sentiment(input_data: TextInput):
-    # Gets the text from input_data and predicts.
+    """
+    Takes in text and returns whether it's positive or negative
+    The model returns 1 for positive and 0 for negative
+    """
+    # Put the text in a list since that's what the model expects
     user_text = [input_data.text]
     
-    # Uses the model to predict (returns a list, like [1] or [0])
+    # Ask the model what it thinks
     prediction = model.predict(user_text)[0]
     
-    # Converts the 1 or 0 into "Positive" or "Negative" text
+    # Convert the number to something more readable
     if prediction == 1:
         sentiment_label = "Positive"
-    elif prediction == 0:
-        sentiment_label = "Negative"
     else:
-        sentiment_label = "Unknown" 
-
-    # Log the prediction
-    log_prediction(input_data.text, sentiment_label)
+        sentiment_label = "Negative"
     
-    # Return the JSON response
+    # Send back the results
     return {
-        "text": input_data.text, 
+        "text": input_data.text,
         "sentiment": sentiment_label,
-        "model_version": "v1.0" 
+        "model_version": "1.0"
     }
