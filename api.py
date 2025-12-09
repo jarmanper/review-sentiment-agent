@@ -35,6 +35,7 @@ with open("sentiment_model.pkl", "rb") as f:
     model = pickle.load(f)
 
 @app.get("/")
+@app.head("/")
 def home():
     """Health check endpoint - just returns a message to confirm the API is running"""
     return {"message": "Sentiment Analysis API is running!"}
